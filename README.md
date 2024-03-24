@@ -11,7 +11,7 @@ I've never worked with syntax parsing before and find it quite challenging, so a
 ## Lua Code Transformation Example
 **Before:**
 ```lua
-RandomName = {
+YourEcuName = {
 	RequestId = 0x7A6,
 	ResponseId = 0x7A7,
 	Raw = {
@@ -26,7 +26,7 @@ RandomName = {
 
 **After:**
 ```lua
-RandomName = {
+YourEcuName = {
 	RequestId = 0x7A6,
 	ResponseId = 0x7A7,
 	DIDs = {
@@ -35,8 +35,8 @@ RandomName = {
 	Raw = {
 		["10 03"] = "50 03 00 28 00 C8",
 		["3E 00"] = "7E 00",
-		["22 22 35"] =  function(request) return getDidData(Dash,request) end,
-		["2E 22 35 *"] = function(request) return updateDidData(Dash,request ) end,
+		["22 22 35"] =  function(request) return getDidData(YourEcuName,request) end,
+		["2E 22 35 *"] = function(request) return updateDidData(YourEcuName,request ) end,
         -- Additional entries here
     }
 }

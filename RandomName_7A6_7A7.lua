@@ -1,4 +1,4 @@
-RandomName = {
+YourEcuName = {
 	RequestId = 0x7A6,
 	ResponseId = 0x7A7,
 	Raw = {
