@@ -2,7 +2,7 @@
 # EcuDiagSimLuaDynamization
 
 ## Project Overview
-This project is in its initial stages, aimed at dynamically adjusting LUA scripts for the EcuDiagSim project, focusing on pairs of writable and readable Data Identifiers (DIDs). 
+This project is in its initial stages, aimed at dynamically adjusting LUA scripts for the [EcuDiagSim](https://github.com/DiagProf/EcuDiagSim) project, focusing on pairs of writable and readable Data Identifiers (DIDs). 
 
 ## Current State
 Exploration of the [Loretta library](https://github.com/LorettaDevs/Loretta) for LUA code manipulation is ongoing, i believe it is the right tool for my goals. 
