@@ -69,8 +69,6 @@ namespace EcuDiagSimLuaDynamization
                         break;
                     }
 
-                   // var root = syntaxTree.GetCompilationUnitRoot();
-
                     var firstLevelTablesWithRawInside = RawTableContainerTableCollector.Collect(syntaxTree.GetRoot());
 
                     foreach (var rawTableInsideFirstLevelTable in firstLevelTablesWithRawInside)
@@ -123,6 +121,17 @@ namespace EcuDiagSimLuaDynamization
                             {
                                 keysToRemove.Add(writeAndReadPair.Key);
                             }
+                            else
+                            {
+                                if ( writeAndReadPair.Value.WriteSequenceField.Key.ToString().Replace(" ", "").Length !=
+                                     writeAndReadPair.Value.ReadSequenceField.Value.ToString().Replace(" ", "").Length )
+                                {
+                                    //We also exclude any DIDs where the length of the read data does not match the length of the written data.
+                                    //Such cases do occur occasionally.
+                                    keysToRemove.Add(writeAndReadPair.Key);
+                                }
+
+                            }
                         }
 
                         foreach (var key in keysToRemove)
@@ -143,8 +152,8 @@ namespace EcuDiagSimLuaDynamization
 
 
 
-                
-
+                    //got help https://github.com/orgs/LorettaDevs/discussions/123  
+                    // var root = syntaxTree.GetCompilationUnitRoot();
                     //var tables = root.DescendantNodes().OfType<TableConstructorExpressionSyntax>();
                     //var toAnalyze = new List<TableConstructorExpressionSyntax>();
 

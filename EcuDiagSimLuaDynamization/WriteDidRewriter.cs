@@ -29,6 +29,7 @@ using Loretta.CodeAnalysis;
 using Loretta.CodeAnalysis.Lua;
 using Loretta.CodeAnalysis.Lua.Syntax;
 using System.Collections.Immutable;
+using System.Linq.Expressions;
 
 namespace EcuDiagSimLuaDynamization
 {
@@ -47,9 +48,12 @@ namespace EcuDiagSimLuaDynamization
 
         public override SyntaxNode? VisitExpressionKeyedTableField(ExpressionKeyedTableFieldSyntax node)
         {
-            Console.WriteLine(node);
-            //node.Update() but how
-            //ToDo rework
+            // Input 
+            //e.g.ExpressionKeyedTableFieldSyntax ExpressionKeyedTableField ["2E 22 35 47 11"] = "6E 22 35",
+
+            //ToDo rework  e.g. -> ["2E 22 35 *"] = function(request) return updateDidData(YourEcuName,request ) end,  
+            //node.Update();
+
             return base.VisitExpressionKeyedTableField(node);
         }
 
