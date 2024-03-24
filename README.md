@@ -2,10 +2,10 @@
 # EcuDiagSimLuaDynamization
 
 ## Project Overview
-This project is in its initial stages, aimed at dynamically adjusting LUA scripts for the EcuDiagSim project, focusing on writable and readable Data Identifiers (DIDs). 
+This project is in its initial stages, aimed at dynamically adjusting LUA scripts for the EcuDiagSim project, focusing on pairs of writable and readable Data Identifiers (DIDs). 
 
 ## Current State
-**Please note:** This project is not yet operational. Exploration of the Loretta library for LUA code manipulation is ongoing, believed to be the right tool for our objectives.
+Exploration of the [Loretta library](https://github.com/LorettaDevs/Loretta) for LUA code manipulation is ongoing, believed to be the right tool for our objectives.
 
 ## Lua Code Transformation Example
 **Before:**
@@ -21,6 +21,7 @@ RandomName = {
         -- Additional entries here
     }
 }
+```
 
 **After:**
 ```lua
@@ -57,3 +58,4 @@ function getDidData(ecu, request)
         return "7F 22 11"  -- Return a default error message if the key is not found
     end
 end
+```
