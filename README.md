@@ -2,8 +2,7 @@
 # EcuDiagSimLuaDynamization
 
 ## Project Overview
-This project is in its initial stages, aimed at dynamically adjusting LUA scripts for the [EcuDiagSim](https://github.com/DiagProf/EcuDiagSim) project, focusing on pairs of writable and readable Data Identifiers (DIDs). 
-
+This project is in its early stages, focusing on adjusting LUA scripts for the [EcuDiagSim](https://github.com/DiagProf/EcuDiagSim) project, specifically to enable dynamic interaction with Data Identifiers (DIDs) for both reading and writing. This means that after the LUA rework, you could modify DIDs with a diagnostic tester as if interacting with a real ECU.
 ## Current State
 Exploration of the [Loretta library](https://github.com/LorettaDevs/Loretta) for LUA code manipulation is ongoing, i believe it is the right tool for my goals. 
 I've never worked with syntax parsing before and find it quite challenging, so any help is welcome.
