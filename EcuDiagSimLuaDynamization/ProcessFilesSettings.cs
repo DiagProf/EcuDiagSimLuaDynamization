@@ -109,6 +109,22 @@ namespace EcuDiagSimLuaDynamization
                             break;
                         }
 
+                        //Test do get the EcuName from the Raw Table
+                        string ecuName = "notFoundEcuName";
+                        var parentTable = tableConstructorExpressionSyntax.Ancestors().OfType<TableConstructorExpressionSyntax>().FirstOrDefault()?.Parent?.Parent;
+                        if (parentTable.IsKind(SyntaxKind.AssignmentStatement))
+                        {
+                            var firstVariable = ((parentTable as AssignmentStatementSyntax)!).Variables.FirstOrDefault();
+                            if ( firstVariable.IsKind(SyntaxKind.IdentifierName) )
+                            {
+                               
+                                ecuName = ((firstVariable as IdentifierNameSyntax)!).Name;
+                            }
+                        }
+                        Console.WriteLine($"{ecuName}");
+                       
+
+
                         var rawTableFields = tableConstructorExpressionSyntax.Fields;
                         var dicDids = new Dictionary<string, DidReadAndWritePair>();
                         FindDidsOfInterestInRawTable(rawTableFields, dicDids);

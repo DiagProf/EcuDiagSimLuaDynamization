@@ -53,7 +53,11 @@ namespace EcuDiagSimLuaDynamization
 
             //ToDo rework  e.g. -> ["2E 22 35 *"] = function(request) return updateDidData(YourEcuName,request ) end,  
             //node.Update();
-
+            var newNodeKey = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("2E 22 35 *"));
+            return node.Key.ReplaceNode(node.Key, newNodeKey);
+            
+            //var newNodeValue = SyntaxFactory.AnonymousFunctionExpression(f);
+            // node.ReplaceNode;
             return base.VisitExpressionKeyedTableField(node);
         }
 
