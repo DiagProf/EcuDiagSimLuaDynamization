@@ -25,40 +25,45 @@
 
 #endregion
 
-using System.Collections.Immutable;
 using Loretta.CodeAnalysis;
 using Loretta.CodeAnalysis.Lua;
 using Loretta.CodeAnalysis.Lua.Syntax;
 
 namespace EcuDiagSimLuaDynamization
 {
-    internal class IdentifierKeyedRawTableCollector : LuaSyntaxWalker
+    class ReadDidRewriter : LuaSyntaxRewriter
     {
-        public static ImmutableArray<IdentifierKeyedTableFieldSyntax> Collect(SyntaxNode node)
+        public static SyntaxNode Rewrite(SyntaxNode rawTableSyntaxNode, string ecuName, string did, ExpressionKeyedTableFieldSyntax field)
         {
-            var collector = new IdentifierKeyedRawTableCollector();
-            collector.Visit(node);
-            return collector._tableConstructors.ToImmutable();
+            var rewriter = new ReadDidRewriter(ecuName, did,  field);
+            return rewriter.Visit(rawTableSyntaxNode);
         }
 
-        private readonly ImmutableArray<IdentifierKeyedTableFieldSyntax>.Builder _tableConstructors;
+        private readonly string _ecuName;
+        private readonly string _did;
+        private readonly ExpressionKeyedTableFieldSyntax _field;
 
-        private IdentifierKeyedRawTableCollector() : base(SyntaxWalkerDepth.Node)
+        private ReadDidRewriter(string ecuName, string did, ExpressionKeyedTableFieldSyntax field)
         {
-            _tableConstructors = ImmutableArray.CreateBuilder<IdentifierKeyedTableFieldSyntax>();
+            _ecuName = ecuName;
+            _did = did;
+            _field = field;
         }
 
-        public override void VisitIdentifierKeyedTableField(IdentifierKeyedTableFieldSyntax field)
+        public override SyntaxNode? VisitExpressionKeyedTableField(ExpressionKeyedTableFieldSyntax node)
         {
-            //This checks that the table field is in the form Raw = { ... }
-            if (field is { Identifier.Value: "Raw", Value: TableConstructorExpressionSyntax })
+            // Input (node)
+            //e.g.ExpressionKeyedTableFieldSyntax ExpressionKeyedTableField  ["22 22 35"] = "62 22 35 47 11",
+            if (node.IsEquivalentTo(_field ))
             {
-                _tableConstructors.Add(field);
-                 return; //We've found what we were looking for, so there's no need to go deeper (If I understood it right). don't call base;
+                var func = $"\tDummy = {{\r\n\t\t[\"22 {_did.Substring(0, 2) + " " + _did.Substring(2, 2)} *\"] = function(request) return getDidData({_ecuName},request ) end,\r\n    }}";
+                var parsedSyntaxTree = SyntaxFactory.ParseSyntaxTree(func);
+                var newExpressionKeyedTableFieldSyntax = parsedSyntaxTree.GetRoot().DescendantNodes().OfType<ExpressionKeyedTableFieldSyntax>().First();
+                return newExpressionKeyedTableFieldSyntax;
             }
-
-            base.VisitIdentifierKeyedTableField(field);
+            return base.VisitExpressionKeyedTableField(node);
         }
 
+     
     }
 }

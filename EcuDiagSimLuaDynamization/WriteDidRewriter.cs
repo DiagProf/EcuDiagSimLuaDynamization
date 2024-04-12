@@ -2,7 +2,7 @@
 
 // // MIT License
 // //
-// // Copyright (c) ${CurrentDate.Year} Joerg Frank
+// // Copyright (c) 2024 Joerg Frank
 // // http://www.diagprof.com/
 // //
 // // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -35,29 +35,34 @@ namespace EcuDiagSimLuaDynamization
 {
     class WriteDidRewriter : LuaSyntaxRewriter
     {
-        public static SyntaxNode Rewrite(string did, ExpressionKeyedTableFieldSyntax field)
+        public static SyntaxNode Rewrite(SyntaxNode rawTableSyntaxNode, string ecuName, string did, ExpressionKeyedTableFieldSyntax field)
         {
-            var rewriter = new WriteDidRewriter(did,  field);
-            return rewriter.Visit(field);
+            var rewriter = new WriteDidRewriter(ecuName, did,  field);
+            return rewriter.Visit(rawTableSyntaxNode);
         }
 
-        private WriteDidRewriter(string Did, ExpressionKeyedTableFieldSyntax field)
+        private readonly string _ecuName;
+        private readonly string _did;
+        private readonly ExpressionKeyedTableFieldSyntax _field;
+
+        private WriteDidRewriter(string ecuName, string did, ExpressionKeyedTableFieldSyntax field)
         {
-            
+            _ecuName = ecuName;
+            _did = did;
+            _field = field;
         }
 
         public override SyntaxNode? VisitExpressionKeyedTableField(ExpressionKeyedTableFieldSyntax node)
         {
-            // Input 
+            // Input (node)
             //e.g.ExpressionKeyedTableFieldSyntax ExpressionKeyedTableField ["2E 22 35 47 11"] = "6E 22 35",
-
-            //ToDo rework  e.g. -> ["2E 22 35 *"] = function(request) return updateDidData(YourEcuName,request ) end,  
-            //node.Update();
-            var newNodeKey = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("2E 22 35 *"));
-            return node.Key.ReplaceNode(node.Key, newNodeKey);
-            
-            //var newNodeValue = SyntaxFactory.AnonymousFunctionExpression(f);
-            // node.ReplaceNode;
+            if (node.IsEquivalentTo(_field ))
+            {
+                var func = $"\tDummy = {{\r\n\t\t[\"2E {_did.Substring(0, 2) + " " + _did.Substring(2, 2)} *\"] = function(request) return updateDidData({_ecuName},request ) end,\r\n    }}";
+                var parsedSyntaxTree = SyntaxFactory.ParseSyntaxTree(func);
+                var newExpressionKeyedTableFieldSyntax = parsedSyntaxTree.GetRoot().DescendantNodes().OfType<ExpressionKeyedTableFieldSyntax>().First();
+                return newExpressionKeyedTableFieldSyntax;
+            }
             return base.VisitExpressionKeyedTableField(node);
         }
 

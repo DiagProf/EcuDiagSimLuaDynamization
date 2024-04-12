@@ -2,7 +2,7 @@
 
 // // MIT License
 // //
-// // Copyright (c) ${CurrentDate.Year} Joerg Frank
+// // Copyright (c) 2024 Joerg Frank
 // // http://www.diagprof.com/
 // //
 // // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,6 +28,7 @@
 using System.ComponentModel;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using Loretta.CodeAnalysis;
 using Spectre.Console.Cli;
 using Loretta.CodeAnalysis.Lua;
@@ -69,7 +70,9 @@ namespace EcuDiagSimLuaDynamization
                         break;
                     }
 
-                    var firstLevelTablesWithRawInside = RawTableContainerTableCollector.Collect(syntaxTree.GetRoot());
+                    var root = syntaxTree.GetRoot();
+
+                    var firstLevelTablesWithRawInside = RawTableContainerTableCollector.Collect(root);
 
                     foreach (var rawTableInsideFirstLevelTable in firstLevelTablesWithRawInside)
                     {
@@ -105,24 +108,9 @@ namespace EcuDiagSimLuaDynamization
 
                         if (tableConstructorExpressionSyntax == null)
                         {
-                            Console.WriteLine("Something is wrong with the Raw table; this should not happen..");
+                            Console.WriteLine("Something is wrong with the Raw table. This should not happen..");
                             break;
                         }
-
-                        //Test do get the EcuName from the Raw Table
-                        string ecuName = "notFoundEcuName";
-                        var parentTable = tableConstructorExpressionSyntax.Ancestors().OfType<TableConstructorExpressionSyntax>().FirstOrDefault()?.Parent?.Parent;
-                        if (parentTable.IsKind(SyntaxKind.AssignmentStatement))
-                        {
-                            var firstVariable = ((parentTable as AssignmentStatementSyntax)!).Variables.FirstOrDefault();
-                            if ( firstVariable.IsKind(SyntaxKind.IdentifierName) )
-                            {
-                               
-                                ecuName = ((firstVariable as IdentifierNameSyntax)!).Name;
-                            }
-                        }
-                        Console.WriteLine($"{ecuName}");
-                       
 
 
                         var rawTableFields = tableConstructorExpressionSyntax.Fields;
@@ -155,41 +143,51 @@ namespace EcuDiagSimLuaDynamization
                             dicDids.Remove(key);
                         }
 
-                        foreach (var writeAndReadPair in dicDids)
+                        if ( dicDids.Count > 0 )
                         {
-                            var rw = WriteDidRewriter.Rewrite(writeAndReadPair.Key,writeAndReadPair.Value.WriteSequenceField);
-                            //ToDo rework
+                            //Yes 
+                            
+                            //Test do get the EcuName (outer Table name) starting from the Raw Table
+                            string ecuName = "notFoundEcuName";
+                            var parentTable = tableConstructorExpressionSyntax.Ancestors().OfType<TableConstructorExpressionSyntax>().FirstOrDefault()?.Parent?.Parent;
+                            if (parentTable.IsKind(SyntaxKind.AssignmentStatement))
+                            {
+                                var firstVariable = ((parentTable as AssignmentStatementSyntax)!).Variables.FirstOrDefault();
+                                if (firstVariable.IsKind(SyntaxKind.IdentifierName))
+                                {
+
+                                    ecuName = ((firstVariable as IdentifierNameSyntax)!).Name;
+                                }
+                            }
+                            Console.WriteLine($"{ecuName}");
+
+                            SyntaxNode? updatedWriteDidSyntaxNode = tableConstructorExpressionSyntax;
+                            foreach (var writeAndReadPair in dicDids)
+                            {
+                                if ( (writeAndReadPair.Value.WriteSequenceField != null)  && (writeAndReadPair.Value.ReadSequenceField != null))
+                                {
+                                    updatedWriteDidSyntaxNode = WriteDidRewriter.Rewrite(updatedWriteDidSyntaxNode, ecuName, writeAndReadPair.Key, writeAndReadPair.Value.WriteSequenceField);
+                                
+                                    updatedWriteDidSyntaxNode = ReadDidRewriter.Rewrite(updatedWriteDidSyntaxNode, ecuName, writeAndReadPair.Key, writeAndReadPair.Value.ReadSequenceField);
+                                }
+                                
+                            }
+
+                            if ( updatedWriteDidSyntaxNode != tableConstructorExpressionSyntax )
+                            {
+                                //At least one ExpressionKeyedTableFieldSyntax has been changed.
+                                root = root.ReplaceNode(tableConstructorExpressionSyntax, updatedWriteDidSyntaxNode);
+                                root = DidFunctionUdsAdder.Rewrite(root);
+                            }
+                           
                         }
 
-                        
+
+
+
+                        root.WriteTo(Console.Out);
                     
                     }
-
-
-
-
-                    //got help https://github.com/orgs/LorettaDevs/discussions/123  
-                    // var root = syntaxTree.GetCompilationUnitRoot();
-                    //var tables = root.DescendantNodes().OfType<TableConstructorExpressionSyntax>();
-                    //var toAnalyze = new List<TableConstructorExpressionSyntax>();
-
-                    //foreach (var table in tables)
-                    //{
-                    //    // This checks that the table field is in the form Raw = { ... }
-                    //    if (table.Fields.Any(x => x is IdentifierKeyedTableFieldSyntax { Identifier.Value: "Raw", Value: TableConstructorExpressionSyntax }))
-                    //    {
-                    //        toAnalyze.Add(table);
-                    //    }
-                    //    // If you want to handle ["Raw"] = { ... } case as well
-                    //    else if (table.Fields.Any(x => x is ExpressionKeyedTableFieldSyntax
-                    //             {
-                    //                 Key: LiteralExpressionSyntax { RawKind: (int)SyntaxKind.StringLiteralExpression, Token.Value: "Raw" },
-                    //                 Value: TableConstructorExpressionSyntax
-                    //             }))
-                    //    {
-                    //        toAnalyze.Add(table);
-                    //    }
-                    //}
 
                 }
             }

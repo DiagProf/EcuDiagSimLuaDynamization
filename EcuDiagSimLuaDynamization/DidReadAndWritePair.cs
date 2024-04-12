@@ -2,7 +2,7 @@
 
 // // MIT License
 // //
-// // Copyright (c) ${CurrentDate.Year} Joerg Frank
+// // Copyright (c) 2024 Joerg Frank
 // // http://www.diagprof.com/
 // //
 // // Permission is hereby granted, free of charge, to any person obtaining a copy
