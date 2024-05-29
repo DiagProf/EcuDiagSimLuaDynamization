@@ -1,10 +1,21 @@
+DIDs = {
+	["22 35"] = "47 11",
+}
+
 PCM = {
 	RequestId = 0x791,
 	ResponseId = 0x790,
+	testi = {
+	["22 35"] = "47 11",
+	},
+	tDIDs = {
+		["22 35"] = "47 11",
+		["55 35"] = "66 66 77 11",
+    },
 	Raw = {
 		["10 01"] = "50 01 00 64 07 9E",
-		["22 F1 10"] = "62 F1 10 49 4D 4D 4F 5F 52 41 43 45 4F 4E 5F 41 44 5F 31 5F 31 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
-		["22 F1 11"] = "62 F1 11 4B 45 4B 54 5F 36 31 39 30 30 30 31 30 32 32 34",
+		["22 F1 10"] = "62 F1 10 54 68 69 73 49 73 41 54 65 73 74 53 74 72 69 6E 67 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+		["22 F1 11"] = "62 F1 11 48 65 6C 6C 6F 57 6F 6C 72 64",
 		["10 03"] = "50 03 00 64 07 9E",
 		["22 F1 92"] = "62 F1 92 39 30 41",
 		["22 F1 99"] = "62 F1 99 20 21 11 11",
@@ -110,3 +121,11 @@ PCM = {
 		["2E 10 21 01 F4"] = "6E 10 21",
     }
 }
+
+-- Function to update DIDs
+function updateDidData(ecu, request)
+    local key = request:sub(4,8)  -- Extract the DID key from the request
+    local value = request:sub(10)  -- Extract the value to be assigned to the DID key
+    ecu.DIDs[key] = value  -- Update the value in the DIDs container
+    return "6E " .. key  -- Return Response
+end

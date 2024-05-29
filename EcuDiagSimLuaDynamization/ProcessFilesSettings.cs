@@ -173,10 +173,40 @@ namespace EcuDiagSimLuaDynamization
                                 
                             }
 
+                            //At least one ExpressionKeyedTableFieldSyntax has been changed.
                             if ( updatedWriteDidSyntaxNode != tableConstructorExpressionSyntax )
                             {
-                                //At least one ExpressionKeyedTableFieldSyntax has been changed.
                                 root = root.ReplaceNode(tableConstructorExpressionSyntax, updatedWriteDidSyntaxNode);
+
+                                var a = rawTableInsideFirstLevelTable.DescendantNodes().OfType<IdentifierKeyedTableFieldSyntax>().FirstOrDefault(m=>m is { Identifier.Value: "Raw", Value: TableConstructorExpressionSyntax });
+
+
+                               // IdentifierKeyedTableFieldSyntax table = LuaSyntaxFactory.CreateTable(tableEntries);
+
+                                List<IdentifierKeyedTableFieldSyntax> f = new List<IdentifierKeyedTableFieldSyntax>();
+
+                                var func = """
+                                    dummy = {
+                                    	DIDs = {
+                                    		["22 35"] = "47 11",
+                                    		["55 35"] = "66 66 77 11",
+                                        },\n
+
+                                            }
+                                    """;
+                                var parsedSyntaxTree = SyntaxFactory.ParseSyntaxTree(func);
+                                var newExpressionKeyedTableFieldSyntax = parsedSyntaxTree.GetRoot().DescendantNodes().OfType<IdentifierKeyedTableFieldSyntax>().First();
+
+                                f.Add(newExpressionKeyedTableFieldSyntax);
+                                var newRawTableInsideFirstLevelTable = rawTableInsideFirstLevelTable.InsertNodesBefore(a, f);
+                                newRawTableInsideFirstLevelTable.WriteTo(Console.Out);
+                                root = root.ReplaceNode(rawTableInsideFirstLevelTable, newRawTableInsideFirstLevelTable);
+                                root.WriteTo(Console.Out);
+                                //var newRawTableInsideFirstLevelTable = rawTableInsideFirstLevelTable.InsertNodesBefore(a, f);
+
+                                root = DidTableUdsAdder.Rewrite(root, dicDids);
+                                //root = root.ReplaceNode(rawTableInsideFirstLevelTable, DidTableUdsAdder.Rewrite(rawTableInsideFirstLevelTable, dicDids));
+
                                 root = DidFunctionUdsAdder.Rewrite(root);
                             }
                            
@@ -281,5 +311,59 @@ namespace EcuDiagSimLuaDynamization
         [CommandOption("-p|--protocol <PROTOCOL>")]
         [DefaultValue("UDS")]
         public string Protocol { get; set; }
+    }
+
+    public static class LuaSyntaxFactory
+    {
+        //public static IdentifierKeyedTableFieldSyntax CreateTable(Dictionary<string, string> entries)
+        //{
+        //    var tableItems = entries.Select(kv => CreateTableItem(kv.Key, kv.Value)).ToList();
+        //    return new IdentifierKeyedTableFieldn(tableItems);
+        //}
+
+        private static LuaTableItemSyntax CreateTableItem(string key, string value)
+        {
+            var keyNode = new LuaStringLiteralSyntax(key);
+            var valueNode = new LuaStringLiteralSyntax(value);
+            return new LuaTableItemSyntax(keyNode, valueNode);
+        }
+    }
+
+    public class LuaTableExpressionSyntax
+    {
+        public List<LuaTableItemSyntax> Items { get; }
+
+        public LuaTableExpressionSyntax(List<LuaTableItemSyntax> items)
+        {
+            Items = items;
+        }
+
+        // Methoden zur Umwandlung des Syntaxbaums in einen String oder ähnliches
+    }
+
+    public class LuaTableItemSyntax
+    {
+        public LuaStringLiteralSyntax Key { get; }
+        public LuaStringLiteralSyntax Value { get; }
+
+        public LuaTableItemSyntax(LuaStringLiteralSyntax key, LuaStringLiteralSyntax value)
+        {
+            Key = key;
+            Value = value;
+        }
+
+        // Methoden zur Umwandlung des Syntaxbaums in einen String oder ähnliches
+    }
+
+    public class LuaStringLiteralSyntax
+    {
+        public string Value { get; }
+
+        public LuaStringLiteralSyntax(string value)
+        {
+            Value = value;
+        }
+
+        // Methoden zur Umwandlung des Syntaxbaums in einen String oder ähnliches
     }
 }

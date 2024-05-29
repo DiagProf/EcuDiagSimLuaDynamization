@@ -2,7 +2,7 @@
   "profiles": {
     "EcuDiagSimLuaDynamization": {
       "commandName": "Project",
-      "commandLineArgs": "process PCM_791_790.lua RandomName_7A6_7A7.lua -o processed_files -p UDS",
+      "commandLineArgs": "process PCM_791_790.lua EcuName_7A6_7A7.lua -o processed_files -p UDS",
       "workingDirectory": "..\\"
     }
   }

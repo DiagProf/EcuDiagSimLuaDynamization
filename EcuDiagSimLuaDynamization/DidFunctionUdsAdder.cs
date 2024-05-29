@@ -60,7 +60,13 @@ namespace EcuDiagSimLuaDynamization
                                 local key = request:sub(4,8)  -- Extract the DID key from the request
                                 local value = request:sub(10)  -- Extract the value to be assigned to the DID key
                                 ecu.DIDs[key] = value  -- Update the value in the DIDs container
-                                return "6E " .. key  -- Return Response
+                                local oldValue = ecu.DIDs[key]  -- Read the old value
+                                if oldValue and #oldValue == #value then  -- Check if lengths match
+                                    ecu.DIDs[key] = value  -- Update the value in the DIDs container
+                                    return "6E " .. key  -- Return Response
+                                else
+                                    return "7F 6E 13"  -- Handle error or mismatch case with 13 -> Incorrect message length or invalid format
+                                end
                             end
 
                             """;
